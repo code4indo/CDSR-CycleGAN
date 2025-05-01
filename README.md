@@ -1,4 +1,4 @@
-# Panduan Mencoba CDSR-CycleGAN
+# Panduan Mencoba CDSR-CycleGAN (Indonesian Guide)
 
 ## Pendahuluan
 
@@ -6,188 +6,140 @@ CDSR-CycleGAN adalah implementasi yang ditingkatkan dari arsitektur CycleGAN unt
 
 ## Persiapan Lingkungan
 
-### Clone Repository
+### 1. Clone Repository
 
 ```bash
 git clone https://github.com/code4indo/CDSR-CycleGAN.git
 cd CDSR-CycleGAN
 ```
 
-### Persyaratan Sistem
+### 2. Persyaratan Sistem
 
 *   Python 3.6+
 *   CUDA-capable GPU (direkomendasikan)
+*   [Poetry](https://python-poetry.org/docs/#installation) (untuk manajemen dependensi)
 
-### Instalasi Dependensi (Menggunakan Poetry)
+### 3. Instalasi Dependensi (Menggunakan Poetry)
 
-Pastikan Anda telah menginstal [Poetry](https://python-poetry.org/docs/#installation).
-
-Repositori ini sudah menyertakan file `pyproject.toml` yang mendefinisikan dependensi proyek. Untuk menginstal dependensi ini menggunakan Poetry, jalankan perintah berikut di direktori root repositori:
+Repositori ini menggunakan Poetry untuk mengelola dependensi (lihat `pyproject.toml`).
 
 ```bash
 poetry install
 ```
 
-Perintah ini akan membuat lingkungan virtual (jika belum ada) dan menginstal semua paket yang diperlukan sesuai dengan file `pyproject.toml` dan `poetry.lock`.
+Perintah ini akan membuat lingkungan virtual dan menginstal semua paket yang diperlukan.
 
-Untuk mengaktifkan lingkungan virtual yang dikelola oleh Poetry    
-cara 1:   
-poetry env activate dan poetry akan menunjukan virtual env terkait dan lanjutkan dengan copy paste path tersebut 
+### 4. Aktifkan Lingkungan Virtual Poetry
 
-cara 2:   
-secara manual, Anda bisa menggunakan perintah `source` dengan path ke skrip aktivasi lingkungan virtual. Pertama, dapatkan path ke lingkungan virtual:
+Pilih salah satu cara berikut:
 
-```bash
-poetry env info --path
-```
+*   **Cara 1 (Otomatis):**
+    ```bash
+    poetry shell
+    ```
+    Ini akan mengaktifkan lingkungan virtual dalam shell baru.
 
-Salin path yang ditampilkan. Kemudian, aktifkan lingkungan menggunakan perintah `source` diikuti dengan path tersebut dan `/bin/activate`:
+*   **Cara 2 (Manual):**
+    a. Dapatkan path lingkungan virtual:
+    ```bash
+    poetry env info --path
+    ```
+    b. Aktifkan menggunakan path tersebut:
+    ```bash
+    # Ganti <path-ke-env> dengan output dari perintah sebelumnya
+    source <path-ke-env>/bin/activate
+    # Contoh: source /home/user/.cache/pypoetry/virtualenvs/my-project-py3.9/bin/activate
+    ```
 
-```bash
-source $(poetry env info --path)/bin/activate
-# Contoh jika path yang didapat adalah /home/user/.cache/pypoetry/virtualenvs/my-project-py3.9:
-# source /home/user/.cache/pypoetry/virtualenvs/my-project-py3.9/bin/activate
-```
-Setelah shell aktif, Anda dapat menjalankan perintah Python secara langsung (misalnya, `python train.py ...`).
-
+Setelah lingkungan aktif, Anda dapat menjalankan skrip Python (misalnya, `python train.py ...`).
 
 ## Struktur Dataset
 
-Dataset harus disusun dengan struktur berikut (lihat `datasets.py:16-19`):
+Susun dataset Anda seperti berikut:
 
 ```
 data/
-└── S-color0.5/
+└── NAMA_DATASET_ANDA/  # Ganti dengan nama dataset Anda (misal: S-color0.5)
     ├── train/
-    │   ├── A/  # Gambar domain sumber untuk pelatihan
-    │   └── B/  # Gambar domain target untuk pelatihan
+    │   ├── A/  # Gambar domain sumber (pelatihan)
+    │   └── B/  # Gambar domain target (pelatihan)
     └── test/
-        ├── A/  # Gambar domain sumber untuk pengujian
-        └── B/  # Gambar domain target untuk pengujian
+        ├── A/  # Gambar domain sumber (pengujian)
+        └── B/  # Gambar domain target (pengujian)
 ```
 
-Setiap folder harus berisi gambar dengan format yang didukung (`JPG`, `PNG`, dll).
+Gunakan format gambar yang didukung (JPG, PNG, dll.). Ganti `S-color0.5` dalam contoh perintah di bawah dengan `NAMA_DATASET_ANDA`.
 
 ## Proses Pelatihan
 
-### Memulai Server Visdom
-
-Sebelum memulai pelatihan, jalankan server Visdom untuk visualisasi:
+### 1. Mulai Server Visdom (Opsional, untuk Visualisasi)
 
 ```bash
 python -m visdom.server
 ```
 
-Server Visdom akan berjalan di `http://localhost:8097`.
+Akses visualisasi di `http://localhost:8097`.
 
-### Parameter Pelatihan
-
-Berikut adalah parameter yang dapat disesuaikan untuk pelatihan (lihat `train.py:30-48`).
-
-### Menjalankan Pelatihan
+### 2. Jalankan Pelatihan
 
 ```bash
-python train.py --dataroot data/S-color0.5 --n_epochs 100 --batchSize 1 --size 256
+python train.py --dataroot data/NAMA_DATASET_ANDA --n_epochs 100 --batchSize 1 --size 256 --cuda
 ```
 
-Parameter penting yang dapat disesuaikan:
+Parameter penting:
 
-*   `--n_epochs`: Jumlah epoch pelatihan (default: 100)
-*   `--batchSize`: Ukuran batch (default: 1)
-*   `--lr`: Learning rate (default: 0.0001)
-*   `--dataroot`: Direktori root dataset (default: `data/S-color0.5`)
-*   `--size`: Ukuran gambar (default: 256)
-*   `--cuda`: Gunakan GPU untuk komputasi (default: true)
+*   `--dataroot`: Direktori root dataset (wajib diubah).
+*   `--n_epochs`: Jumlah epoch pelatihan (default: 100).
+*   `--decay_epoch`: Epoch untuk mulai mengurangi learning rate (default: 50).
+*   `--batchSize`: Ukuran batch (default: 1). Sesuaikan berdasarkan memori GPU.
+*   `--lr`: Learning rate awal (default: 0.0001).
+*   `--size`: Ukuran gambar input (default: 256).
+*   `--cuda`: Gunakan GPU (default: true). Set ke `false` jika tidak ada GPU.
 
-### Penyimpanan Model
-
-Selama pelatihan, model akan disimpan secara otomatis di direktori `output` (lihat `train.py:272-277`).
+Model checkpoint akan disimpan secara otomatis di `Output/NAMA_DATASET_ANDA/model/`.
 
 ## Proses Pengujian
 
-Setelah pelatihan selesai, Anda dapat menguji model dengan perintah:
+### 1. Jalankan Pengujian
+
+Pastikan model hasil pelatihan ada di direktori `Output/NAMA_DATASET_ANDA/model/`.
 
 ```bash
-python test.py --dataroot data/S-color0.5 --cuda
+python test.py --dataroot data/NAMA_DATASET_ANDA --cuda
 ```
 
-### Parameter Pengujian
+Parameter penting:
 
-Berikut adalah parameter yang dapat disesuaikan untuk pengujian:
+*   `--dataroot`: Direktori root dataset (wajib diubah).
+*   `--size`: Ukuran gambar input (default: 256).
+*   `--cuda`: Gunakan GPU (default: true).
+*   `--generator_A2B`, `--generator_B2A`, `--generator_E1`, `--generator_E2`: Path ke file checkpoint model (default menggunakan path di `Output/NAMA_DATASET_ANDA/model/`).
 
-*   `--batchSize`: Ukuran batch (default: 1)
-*   `--dataroot`: Direktori root dataset (default: `data/S-color0.5`)
-*   `--size`: Ukuran gambar (default: 256)
-*   `--cuda`: Gunakan GPU untuk komputasi (default: true)
-*   `--generator_A2B`: Path ke file checkpoint generator A2B (default: `Output/S-color0.5/model/netG_A2B.pth`)
-*   `--generator_B2A`: Path ke file checkpoint generator B2A (default: `Output/S-color0.5/model/netG_B2A.pth`)
-*   `--generator_E1`: Path ke file checkpoint encoder E1 (default: `Output/S-color0.5/model/netG_E1.pth`)
-*   `--generator_E2`: Path ke file checkpoint encoder E2 (default: `Output/S-color0.5/model/netG_E2.pth`)
+### 2. Hasil Pengujian
 
-### Hasil Pengujian
+Hasil gambar transformasi akan disimpan di:
 
-Hasil pengujian akan disimpan di direktori `output` (lihat `test.py:88-89`).
+*   `Output/NAMA_DATASET_ANDA/result/img_a11/` (Hasil B -> A)
+*   `Output/NAMA_DATASET_ANDA/result/img_b11/` (Hasil A -> B)
 
-Gambar hasil transformasi akan disimpan dengan format berikut (lihat `test.py:100-102`).
-
-### Visualisasi Hasil
-
-Hasil transformasi gambar dapat dilihat di direktori:
-
-*   `Output/S-color0.5/result/img_a11/`: Hasil transformasi dari domain B ke A
-*   `Output/S-color0.5/result/img_b11/`: Hasil transformasi dari domain A ke B
-
-Informasi waktu pemrosesan juga akan dicatat (lihat `test.py:109-117`).
+Informasi waktu pemrosesan disimpan di `Output/NAMA_DATASET_ANDA/runtime.txt`.
 
 ## Arsitektur Model
 
-CDSR-CycleGAN menggunakan beberapa komponen utama:
-
-*   **Generator AtoB**: Mentransformasi gambar dari domain A ke domain B
-*   **Generator BtoA**: Mentransformasi gambar dari domain B ke domain A
-*   **Encoder S1 dan S2**: Jaringan encoder tambahan untuk meningkatkan kualitas transformasi
-*   **Discriminator A dan B**: Membedakan gambar asli dan palsu
+*   **Generator (AtoB & BtoA)**: Melakukan translasi antar domain.
+*   **Encoder (E1 & E2)**: Encoder tambahan untuk fitur.
+*   **Discriminator (A & B)**: Membedakan gambar asli dan hasil translasi.
 
 ## Tips dan Troubleshooting
 
-*   **Penggunaan GPU**:
-    *   Pastikan CUDA diinstal dengan benar.
-    *   Anda dapat mengatur GPU yang digunakan dengan parameter `CUDA_VISIBLE_DEVICES`:
-        ```bash
-        export CUDA_VISIBLE_DEVICES=0  # Gunakan GPU pertama
-        ```
-*   **Masalah Memori**:
-    *   Jika mengalami masalah memori GPU, coba kurangi ukuran batch atau ukuran gambar.
-    *   Gunakan parameter `--size` dengan nilai yang lebih kecil.
-*   **Kualitas Hasil**:
-    *   Kualitas hasil sangat bergantung pada dataset yang digunakan.
-    *   Pastikan gambar dalam dataset memiliki kualitas yang baik dan konsisten.
-*   **Waktu Pelatihan**:
-    *   Pelatihan dapat memakan waktu lama tergantung pada jumlah epoch dan ukuran dataset.
-    *   Gunakan parameter `--n_epochs` yang lebih kecil untuk pengujian awal.
-*   **Visualisasi dengan Visdom**:
-    *   Pastikan server Visdom berjalan sebelum memulai pelatihan.
-    *   Akses visualisasi di browser melalui `http://localhost:8097`.
+*   **GPU**: Pastikan driver CUDA dan PyTorch versi GPU terinstal. Atur GPU spesifik dengan `export CUDA_VISIBLE_DEVICES=0` (gunakan GPU ID 0).
+*   **Memori**: Jika kehabisan memori GPU, kurangi `--batchSize` atau `--size`.
+*   **Kualitas**: Hasil bergantung pada kualitas dan kuantitas dataset.
+*   **Waktu**: Pelatihan bisa lama. Coba dengan `--n_epochs` lebih kecil untuk tes awal.
 
 ## Referensi
 
-*   **Kode sumber**: [code4indo/CDSR-CycleGAN](https://github.com/code4indo/CDSR-CycleGAN)
-*   **Arsitektur model**: Lihat file `models.py` untuk detail implementasi.
-*   **Proses pelatihan**: Lihat file `train.py` untuk detail alur pelatihan.
-*   **Proses pengujian**: Lihat file `test.py` untuk detail alur pengujian.
-
-Dengan mengikuti panduan ini, Anda dapat mencoba metode CDSR-CycleGAN untuk translasi gambar antar domain.
+*   **Kode Sumber**: [code4indo/CDSR-CycleGAN](https://github.com/code4indo/CDSR-CycleGAN)
+*   **Detail Implementasi**: Lihat file `models.py`, `train.py`, `test.py`.
 
 ---
-
-**Notes:**
-
-*   Panduan ini dibuat berdasarkan analisis kode dari repositori `code4indo/CDSR-CycleGAN`.
-*   Struktur dataset dan parameter yang digunakan mengacu pada nilai default dalam kode.
-*   Beberapa parameter mungkin perlu disesuaikan berdasarkan kebutuhan dan spesifikasi hardware Anda.
-
----
-
-**Wiki pages you might want to explore:**
-
-*   [Overview (code4indo/CDSR-CycleGAN)](https://github.com/code4indo/CDSR-CycleGAN/wiki)
