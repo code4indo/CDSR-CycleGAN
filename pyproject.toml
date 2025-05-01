@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "cdsr-cyclegan" # Anda bisa mengganti nama ini
+version = "0.1.0" # Anda bisa mengganti versi ini
+description = "Deskripsi proyek CDSR-CycleGAN Anda" # Tambahkan deskripsi singkat
+authors = ["Jatniko NM jatnikonm@gmail.com"] # Ganti dengan nama dan email Anda
+readme = "README.md" # Jika Anda punya file README
+
+[tool.poetry.dependencies]
+python = "^3.10.12" # Sesuaikan dengan versi Python yang Anda gunakan
+torch = ">=1.0.0"
+torchvision = ">=0.2.1"
+Pillow = ">=5.0.0"
+visdom = ">=0.1.8"
+numpy = ">=1.15.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
