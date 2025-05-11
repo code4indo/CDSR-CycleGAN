@@ -1,14 +1,33 @@
 #!/usr/bin/python3
 
 import argparse
+import sys
 import itertools
-import random
+
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
-from PIL import Image
 import torch
+from PIL import Image
 import torch.nn as nn
+
+# --- Diagnostic: Checking CUDA availability in train.py ---
+print("--- Diagnostic: Checking CUDA availability in train.py ---")
+print(f"PyTorch version: {torch.__version__}")
+print(f"CUDA available: {torch.cuda.is_available()}")
+if torch.cuda.is_available():
+    print(f"CUDA version PyTorch built with: {torch.version.cuda}")
+    print(f"Number of GPUs: {torch.cuda.device_count()}")
+    print(f"Current GPU name: {torch.cuda.get_device_name(0)}")
+    print(f"Current device: {torch.cuda.current_device()}")
+    print(f"Device capability: {torch.cuda.get_device_capability(0)}")
+else:
+    print("PyTorch cannot find CUDA at the start of train.py.")
+    try:
+        torch.zeros(1).cuda()
+    except Exception as e:
+        print(f"Error when trying to use CUDA at start of train.py: {e}")
+print("--- End Diagnostic ---")
 
 
 from models import S, BtoA, AtoB

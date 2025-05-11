@@ -19,7 +19,7 @@ if not os.path.exists('Output/S-color0.5/'):
 output_file = open("./Output/S-color0.5/runtime.txt", "w")
 start_time = time.time()
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+# os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batchSize', type=int, default=1, help='size of the batches')
@@ -68,9 +68,12 @@ netG_E2.eval()
 #print('GENTOT')
 
 # Inputs & targets memory allocation
-Tensor = torch.cuda.FloatTensor if opt.cuda else torch.Tensor
-input_A = Tensor(opt.batchSize, opt.input_nc, opt.size, opt.size)
-input_B = Tensor(opt.batchSize, opt.output_nc, opt.size, opt.size)
+# Tensor = torch.cuda.FloatTensor if opt.cuda else torch.Tensor
+# input_A = Tensor(opt.batchSize, opt.input_nc, opt.size, opt.size)
+# input_B = Tensor(opt.batchSize, opt.output_nc, opt.size, opt.size)
+device = torch.device('cuda' if opt.cuda else 'cpu')
+input_A = torch.empty(opt.batchSize, opt.input_nc, opt.size, opt.size, dtype=torch.float32, device=device)
+input_B = torch.empty(opt.batchSize, opt.output_nc, opt.size, opt.size, dtype=torch.float32, device=device)
 
 # Dataset loader
 transforms_ = [ transforms.Resize(size=(256,256)),
@@ -115,4 +118,4 @@ avg_img_time = total_time / len(dataloader)
 
 output_file.write(f"\nTotal time of operation: {total_time:.4f} seconds\n")
 output_file.write(f"Average time of operation per image: {avg_img_time:.4f} seconds\n")
-output_file.close() 
+output_file.close()
