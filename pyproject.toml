@@ -2,8 +2,9 @@
 name = "cdsr-cyclegan" # Anda bisa mengganti nama ini
 version = "0.1.0" # Anda bisa mengganti versi ini
 description = "Deskripsi proyek CDSR-CycleGAN Anda" # Tambahkan deskripsi singkat
-authors = ["Jatniko NM jatnikonm@gmail.com"] # Ganti dengan nama dan email Anda
+authors = ["Jatniko NM <jatnikonm@gmail.com>"] # Ganti dengan nama dan email Anda
 readme = "README.md" # Jika Anda punya file README
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.10.12" # Sesuaikan dengan versi Python yang Anda gunakan
