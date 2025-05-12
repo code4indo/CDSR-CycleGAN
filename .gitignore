@@ -79,3 +79,6 @@ poetry.lock
 Output/
 data/
 model
+
+
+*.pth

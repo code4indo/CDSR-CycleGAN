@@ -124,6 +124,36 @@ Hasil gambar transformasi akan disimpan di:
 
 Informasi waktu pemrosesan disimpan di `Output/NAMA_DATASET_ANDA/runtime.txt`.
 
+## Proses Inferensi (Pembersihan Dokumen)
+
+Skrip `inference.py` digunakan untuk melakukan pembersihan pada kumpulan gambar dokumen yang rusak. Skrip ini akan memproses setiap gambar dalam direktori input, memotongnya menjadi bagian-bagian kecil (patch), membersihkan setiap patch menggunakan model generator yang telah dilatih (`netG_A2B.pth`), dan kemudian menggabungkan kembali patch-patch tersebut menjadi gambar utuh yang bersih.
+
+### 1. Jalankan Inferensi
+
+Pastikan Anda memiliki model `netG_A2B.pth` yang telah dilatih (biasanya disimpan di `Output/NAMA_DATASET_ANDA/model/netG_A2B.pth` setelah proses pelatihan, atau Anda bisa menggunakan path kustom).
+
+```bash
+python inference.py --input_dir /path/ke/direktori_gambar_rusak/ --cuda
+```
+
+Ganti `/path/ke/direktori_gambar_rusak/` dengan path aktual ke direktori yang berisi gambar-gambar dokumen yang ingin Anda bersihkan.
+
+### 2. Parameter Penting
+
+*   `--input_dir` (wajib): Direktori yang berisi gambar-gambar dokumen rusak yang akan diproses.
+*   `--output_subdir_name`: Nama subdirektori yang akan dibuat di dalam `--input_dir` untuk menyimpan hasil gambar yang sudah bersih. Default: `cleaned_output`.
+*   `--model_path`: Path ke file checkpoint model generator `netG_A2B.pth`. Default: `Output/S-color0.5/model/netG_A2B.pth`. Sesuaikan jika nama dataset atau lokasi model Anda berbeda.
+*   `--patch_size`: Ukuran patch yang digunakan untuk memproses gambar (misalnya, 256 untuk 256x256 piksel). Default: `256`. Sebaiknya sama dengan ukuran yang digunakan saat pelatihan.
+*   `--input_nc`: Jumlah channel gambar input untuk model. Default: `3`.
+*   `--output_nc`: Jumlah channel gambar output untuk model. Default: `3`.
+*   `--cuda`: Gunakan GPU untuk komputasi jika tersedia.
+
+### 3. Hasil Inferensi
+
+Hasil gambar yang telah dibersihkan akan disimpan di subdirektori yang ditentukan oleh `--output_subdir_name` (default: `cleaned_output`) di dalam direktori yang Anda berikan pada `--input_dir`. Nama file output akan sama dengan nama file input dengan tambahan `_cleaned.png`.
+
+Contoh: Jika input adalah `/path/ke/direktori_gambar_rusak/dokumen1.jpg`, maka outputnya akan menjadi `/path/ke/direktori_gambar_rusak/cleaned_output/dokumen1_cleaned.png`.
+
 ## Arsitektur Model
 
 *   **Generator (AtoB & BtoA)**: Melakukan translasi antar domain.

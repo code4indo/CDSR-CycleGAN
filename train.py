@@ -191,7 +191,7 @@ for epoch in range(opt.epoch, opt.n_epochs):
         pred_fake = netD_A(fake_A)
         loss_GAN_B2A1 = criterion_GAN(pred_fake, target_real)
         fake_AE = netG_E2(fake_A)
-        pred_fake2 = netD_A(fake_AE)  # Diganti dari netD_B ke netD_A # kembali lagi ke awal
+        pred_fake2 = netD_B(fake_AE)  # Diganti dari netD_B ke netD_A # kembali lagi ke awal
         loss_GAN_B2A2 = criterion_GAN(pred_fake2, target_real)
         loss_GAN_B2A = loss_GAN_B2A1 + loss_GAN_B2A2
 
