@@ -124,8 +124,8 @@ criterion_cycle = torch.nn.L1Loss()  # Cyclic consistency loss
 criterion_identity = torch.nn.L1Loss()  # identity loss
 criterion_fGT = torch.nn.L1Loss()  # Pseudo-similarity loss
 
-# Optimizers & LR schedulers
-optimizer_G = torch.optim.Adam(itertools.chain(netG_A2B.parameters(), netG_B2A.parameters(), netG_E2.parameters(), netG_E2.parameters()),
+# Optimizers & LR schedulers # bagian ini diubah karena duplikat
+optimizer_G = torch.optim.Adam(itertools.chain(netG_A2B.parameters(), netG_B2A.parameters(), netG_E1.parameters(), netG_E2.parameters()),
                                lr=opt.lr, betas=(0.5, 0.999))
 optimizer_D_A = torch.optim.Adam(
     netD_A.parameters(), lr=opt.lr, betas=(0.5, 0.999))
@@ -143,9 +143,9 @@ lr_scheduler_D_B = torch.optim.lr_scheduler.LambdaLR(
 Tensor = torch.cuda.FloatTensor if opt.cuda else torch.Tensor
 input_A = Tensor(opt.batchSize, opt.input_nc, opt.size, opt.size)
 input_B = Tensor(opt.batchSize, opt.output_nc, opt.size, opt.size)
-target_real = Variable(Tensor(opt.batchSize).fill_(1.0),
+target_real = Variable(Tensor(opt.batchSize, 1).fill_(1.0),
                        requires_grad=False)  # real
-target_fake = Variable(Tensor(opt.batchSize).fill_(0.0),
+target_fake = Variable(Tensor(opt.batchSize, 1).fill_(0.0),
                        requires_grad=False)  # fake
 
 fake_A_buffer = ReplayBuffer()
@@ -191,7 +191,7 @@ for epoch in range(opt.epoch, opt.n_epochs):
         pred_fake = netD_A(fake_A)
         loss_GAN_B2A1 = criterion_GAN(pred_fake, target_real)
         fake_AE = netG_E2(fake_A)
-        pred_fake2 = netD_B(fake_AE)
+        pred_fake2 = netD_A(fake_AE)  # Diganti dari netD_B ke netD_A # kembali lagi ke awal
         loss_GAN_B2A2 = criterion_GAN(pred_fake2, target_real)
         loss_GAN_B2A = loss_GAN_B2A1 + loss_GAN_B2A2
 
@@ -226,6 +226,7 @@ for epoch in range(opt.epoch, opt.n_epochs):
         # Total loss
         loss_G = loss_perceptual * 0.7 + loss_GAN_A2B + loss_GAN_B2A + loss_cycle_1 + loss_cycle_2 + loss_id_B2A + loss_id_A2B + loss_fGT
         loss_G.backward()
+
 
         optimizer_G.step()
         ###################################

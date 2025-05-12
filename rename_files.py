@@ -1,101 +1,61 @@
 import os
-import argparse
+import argparse # Add this import
 
-def rename_files_sequentially(directory_path):
+def rename_files_in_directory(directory_path, start_count=1): # Add start_count parameter
     """
-    Renames files in the given directory to sequential numbers (1.ext, 2.ext, ...),
-    preserving the original file extensions.
+    Renames files in the specified directory to a sequential number format (start_count.ext, start_count+1.ext, ...).
     """
-    print(f"Memproses direktori: {directory_path}")
     if not os.path.isdir(directory_path):
-        print(f"Error: Direktori tidak ditemukan: {directory_path}")
+        print(f"Error: Directory not found at {directory_path}")
         return
 
-    try:
-        # Ambil daftar file saja, dan urutkan untuk konsistensi
-        filenames = sorted([f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f))])
-    except OSError as e:
-        print(f"Error saat membaca daftar file di {directory_path}: {e}")
-        return
+    files = [f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f))]
+    files.sort()  # Sort files to ensure consistent renaming if run multiple times, though order might not strictly matter.
 
-    if not filenames:
-        print(f"Tidak ada file yang ditemukan di {directory_path}.")
-        return
+    count = start_count # Initialize count with start_count
+    for filename in files:
+        original_filepath = os.path.join(directory_path, filename)
+        file_extension = os.path.splitext(filename)[1]
+        new_filename = f"{count}{file_extension}"
+        new_filepath = os.path.join(directory_path, new_filename)
 
-    count = 1
-    renamed_count = 0
-    for filename in filenames:
+        # Ensure new filename doesn't already exist (shouldn't happen with this logic but good practice)
+        while os.path.exists(new_filepath):
+            # This case should ideally not be hit if files are renamed sequentially from 1.
+            # However, if there's a mixup or pre-existing numbered files, this adds robustness.
+            # For this specific request, we assume a clean rename.
+            # If we were to make it more robust for existing numbered files,
+            # we might need a temporary naming scheme or a more complex check.
+            # Given the prompt, a simple sequential rename is expected.
+            print(f"Warning: {new_filepath} already exists. This shouldn't happen in a clean run.")
+            # For now, we'll just overwrite, but in a real scenario, you might want to skip or add a suffix.
+            # For this script's purpose, direct renaming is assumed.
+            break # Breaking to avoid infinite loop in an unexpected scenario.
+
         try:
-            name, ext = os.path.splitext(filename)
-            new_filename = f"{count}{ext}"
-            old_filepath = os.path.join(directory_path, filename)
-            new_filepath = os.path.join(directory_path, new_filename)
-
-            # Hindari menimpa file yang sudah ada dengan nama baru, kecuali itu file yang sama
-            # (misalnya, jika hanya case yang berbeda, yang tidak relevan di beberapa FS)
-            if os.path.exists(new_filepath):
-                if old_filepath.lower() == new_filepath.lower() and old_filepath != new_filepath :
-                    # Kasus di mana nama file hanya berbeda dalam case, dan sistem file case-sensitive
-                    # Izinkan penggantian nama dalam kasus ini.
-                    pass
-                elif old_filepath == new_filepath:
-                    # File sudah memiliki nama yang diinginkan, tidak perlu diubah
-                    print(f"File {filename} sudah memiliki nama target {new_filename}. Dilewati.")
-                    count += 1
-                    continue
-                else:
-                    print(f"Peringatan: Nama file baru {new_filename} sudah ada di {directory_path}. File {filename} dilewati.")
-                    # Pertimbangkan untuk tidak menaikkan count di sini jika ingin mencoba angka berikutnya,
-                    # atau biarkan untuk menjaga urutan yang ketat dari file yang diproses.
-                    # Untuk saat ini, kita lewati file ini dan lanjutkan dengan file berikutnya dan nomor berikutnya.
-                    # Jika ingin nomor tetap berurutan untuk file yang berhasil di-rename, count harus dinaikkan
-                    # hanya jika rename berhasil. Namun, ini bisa menyebabkan gap jika banyak file dilewati.
-                    # Alternatifnya, jika file target ada, coba nomor berikutnya untuk file saat ini.
-                    # Untuk kesederhanaan, kita lewati dan lanjutkan.
-                    continue
-
-
-            os.rename(old_filepath, new_filepath)
-            print(f"Berhasil diubah: {old_filepath} -> {new_filepath}")
-            renamed_count += 1
+            os.rename(original_filepath, new_filepath)
+            print(f"Renamed: {original_filepath} -> {new_filepath}")
             count += 1
         except OSError as e:
-            print(f"Error saat mengubah nama file {filename} di {directory_path}: {e}")
-        except Exception as e:
-            print(f"Terjadi kesalahan tak terduga dengan file {filename}: {e}")
+            print(f"Error renaming {original_filepath} to {new_filepath}: {e}")
 
-    print(f"Selesai memproses {directory_path}. Berhasil mengubah nama {renamed_count} file.")
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Mengubah nama file di subdirektori A dan B menjadi nomor urut.")
-    parser.add_argument(
-        "--base_dirs",
-        nargs='+',
-        default=[
-            "/TESIS/CDSR-CycleGAN/data/arsip/test",
-            "/TESIS/CDSR-CycleGAN/data/arsip/train",
-            "/TESIS/CDSR-CycleGAN/data/S-color0.5/test",
-            "/TESIS/CDSR-CycleGAN/data/S-color0.5/train",
-        ],
-        help="Daftar direktori dasar yang berisi subfolder A dan B untuk diproses."
-    )
-    parser.add_argument(
-        "--subdirs_to_process",
-        nargs='+',
-        default=["A", "B"],
-        help="Nama subdirektori (misalnya, A, B) yang akan diproses di setiap base_dir."
-    )
-
+def main():
+    parser = argparse.ArgumentParser(description="Rename files in a directory sequentially.")
+    parser.add_argument("directory", help="The path to the directory containing files to rename.")
+    parser.add_argument("--nomer_mulai", type=int, default=1, help="The starting number for renaming files.")
     args = parser.parse_args()
 
-    target_parent_dirs = args.base_dirs
-    subdirs_to_rename = args.subdirs_to_process
+    directory_to_process = args.directory
+    starting_number = args.nomer_mulai
 
-    print("Memulai skrip penggantian nama file...")
-    for parent_dir in target_parent_dirs:
-        for subdir_name in subdirs_to_rename:
-            current_target_dir = os.path.join(parent_dir, subdir_name)
-            rename_files_sequentially(current_target_dir)
-            print("-" * 40)
+    if not os.path.isabs(directory_to_process):
+        directory_to_process = os.path.abspath(directory_to_process)
 
-    print("Skrip selesai.")
+    print(f"Processing directory: {directory_to_process}")
+    print(f"Starting number: {starting_number}")
+    rename_files_in_directory(directory_to_process, starting_number)
+
+    print("\\nFile renaming process completed.")
+
+if __name__ == "__main__":
+    main()
