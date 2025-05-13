@@ -76,7 +76,7 @@ input_A = torch.empty(opt.batchSize, opt.input_nc, opt.size, opt.size, dtype=tor
 input_B = torch.empty(opt.batchSize, opt.output_nc, opt.size, opt.size, dtype=torch.float32, device=device)
 
 # Dataset loader
-transforms_ = [ transforms.Resize(size=(256,256)),
+transforms_ = [ transforms.Resize(size=(opt.size, opt.size)),
                 transforms.ToTensor(),
                 transforms.Normalize((0.5,0.5,0.5), (0.5,0.5,0.5))]
 dataloader = DataLoader(ImageDataset(opt.dataroot, transforms_=transforms_, mode='test'), 

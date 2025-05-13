@@ -66,23 +66,25 @@ parser.add_argument('--cuda', action='store_true', default='true', help='use GPU
 parser.add_argument('--n_cpu', type=int, default=0,
                     help='number of cpu threads to use during batch generation')
 opt = parser.parse_args()
+if isinstance(opt.cuda, str): # Mengkonversi string 'true' dari default ke boolean
+    opt.cuda = opt.cuda.lower() == 'true'
 print(opt)
 
-# Networks
-netG_A2B = AtoB(opt.input_nc, opt.output_nc)
-netG_B2A = BtoA(opt.output_nc, opt.input_nc)
-netG_E1 = S(opt.output_nc, opt.output_nc)
-netG_E2 = S(opt.input_nc, opt.input_nc)
-netD_A = Discriminator(opt.input_nc)
-netD_B = Discriminator(opt.output_nc)
+if opt.cuda and not torch.cuda.is_available():
+    print("WARNING: --cuda was set but CUDA is not available. Running on CPU.")
+    opt.cuda = False
+elif not opt.cuda and torch.cuda.is_available() and opt.epoch == 0: # Hanya print di awal
+    print("INFO: CUDA is available, but --cuda flag was not set. Running on CPU. Add --cuda to use GPU.")
 
-if opt.cuda:
-    netG_A2B.cuda()
-    netG_B2A.cuda()
-    netG_E1.cuda()
-    netG_E2.cuda()
-    netD_A.cuda()
-    netD_B.cuda()
+device = torch.device('cuda' if opt.cuda else 'cpu')
+
+# Networks
+netG_A2B = AtoB(opt.input_nc, opt.output_nc).to(device)
+netG_B2A = BtoA(opt.output_nc, opt.input_nc).to(device)
+netG_E1 = S(opt.output_nc, opt.output_nc).to(device)
+netG_E2 = S(opt.input_nc, opt.input_nc).to(device)
+netD_A = Discriminator(opt.input_nc).to(device)
+netD_B = Discriminator(opt.output_nc).to(device)
 
 netG_A2B.apply(weights_init_normal)
 netG_B2A.apply(weights_init_normal)
@@ -92,7 +94,7 @@ netD_A.apply(weights_init_normal)
 netD_B.apply(weights_init_normal)
 
 # pretrained VGG19 module set in evaluation mode for feature extraction
-vgg = VGGNet().cuda().eval()
+vgg = VGGNet().to(device).eval()
 
 
 def perceptual_loss(x, y):
@@ -140,12 +142,11 @@ lr_scheduler_D_B = torch.optim.lr_scheduler.LambdaLR(
     optimizer_D_B, lr_lambda=LambdaLR(opt.n_epochs, opt.epoch, opt.decay_epoch).step)
 
 # Inputs & targets memory allocation
-Tensor = torch.cuda.FloatTensor if opt.cuda else torch.Tensor
-input_A = Tensor(opt.batchSize, opt.input_nc, opt.size, opt.size)
-input_B = Tensor(opt.batchSize, opt.output_nc, opt.size, opt.size)
-target_real = Variable(Tensor(opt.batchSize, 1).fill_(1.0),
+input_A = torch.empty(opt.batchSize, opt.input_nc, opt.size, opt.size, device=device, dtype=torch.float32)
+input_B = torch.empty(opt.batchSize, opt.output_nc, opt.size, opt.size, device=device, dtype=torch.float32)
+target_real = Variable(torch.ones(opt.batchSize, 1, device=device, dtype=torch.float32),
                        requires_grad=False)  # real
-target_fake = Variable(Tensor(opt.batchSize, 1).fill_(0.0),
+target_fake = Variable(torch.zeros(opt.batchSize, 1, device=device, dtype=torch.float32),
                        requires_grad=False)  # fake
 
 fake_A_buffer = ReplayBuffer()
@@ -172,8 +173,9 @@ if not os.path.exists('Output/S-color0.5/model'):
 for epoch in range(opt.epoch, opt.n_epochs):
     for i, batch in enumerate(dataloader):
         # Set model input
-        real_A = Variable(input_A.copy_(batch['A'])).cuda()
-        real_B = Variable(input_B.copy_(batch['B'])).cuda()
+        # Pindahkan batch data ke device yang benar
+        real_A = Variable(input_A.copy_(batch['A'])).to(device) 
+        real_B = Variable(input_B.copy_(batch['B'])).to(device)
 
         ###### Generators A2B and B2A ######
         optimizer_G.zero_grad()
@@ -191,7 +193,7 @@ for epoch in range(opt.epoch, opt.n_epochs):
         pred_fake = netD_A(fake_A)
         loss_GAN_B2A1 = criterion_GAN(pred_fake, target_real)
         fake_AE = netG_E2(fake_A)
-        pred_fake2 = netD_B(fake_AE)  # Diganti dari netD_B ke netD_A # kembali lagi ke awal
+        pred_fake2 = netD_A(fake_AE)  # Diganti dari netD_B ke netD_A # kembali lagi ke awal
         loss_GAN_B2A2 = criterion_GAN(pred_fake2, target_real)
         loss_GAN_B2A = loss_GAN_B2A1 + loss_GAN_B2A2
 

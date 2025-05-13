@@ -9,6 +9,7 @@ from visdom import Visdom
 import numpy as np
 import torch.nn as nn
 from torchvision import models
+from torchvision.models import VGG19_Weights # Tambahkan import ini
 
 # function to convert tensor to image
 
@@ -159,8 +160,15 @@ class VGGNet(nn.Module):
     def __init__(self):
         """Select conv1_1 ~ conv5_1 activation maps."""
         super(VGGNet, self).__init__()
-        self.select = ['9', '36']
-        self.vgg = models.vgg19(pretrained=True).features
+        self.select = ['9', '36'] # Perhatikan bahwa indeks layer mungkin perlu disesuaikan jika arsitektur VGG berubah antar versi.
+                                     # Untuk VGG19_Weights.IMAGENET1K_V1, '9' adalah output dari conv3_4, dan '36' adalah output dari conv5_4 (setelah pooling).
+                                     # Jika Anda menginginkan layer yang berbeda, Anda perlu menyesuaikan indeks ini.
+                                     # Umumnya, layer yang digunakan adalah sebelum ReLU dan setelah MaxPool.
+                                     # Untuk VGG19, layer '9' adalah relu2_2, '18' adalah relu3_4, '27' adalah relu4_4, '36' adalah relu5_4.
+                                     # Jika Anda ingin fitur dari pooling layers, Anda mungkin perlu menyesuaikan.
+                                     # Untuk saat ini, kita akan pertahankan '9' dan '36' sesuai kode asli,
+                                     # namun ini adalah poin penting untuk diverifikasi jika perceptual loss tidak bekerja seperti yang diharapkan.
+        self.vgg = models.vgg19(weights=VGG19_Weights.IMAGENET1K_V1).features
 
     def forward(self, x):
         """Extract multiple convolutional feature maps."""
